@@ -1,0 +1,199 @@
+{% extends 'artist/base.html' %}
+
+{% block title %}Artist Dashboard | Artisian{% endblock %}
+
+{% block content %}
+{% load static %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="display-5">Artist Dashboard</h1>
+            <p class="lead">Manage your artworks and profile</p>
+        </div>
+        <div class="col-auto">
+            <a href="{% url 'upload_art' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Upload New Art
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    {% if request.user.profile_picture %}
+                    <img src="{{ request.user.profile_picture.url }}" class="rounded-circle mb-3" width="150"
+                        height="150" alt="Profile Picture">
+                    {% else %}
+                    <img src="{% static 'images/user-profile.jpg' %}" class="rounded-circle mb-3" width="150"
+                        height="150" alt="Profile Picture">
+                    {% endif %}
+                    <h4>{{ request.user.get_full_name }}</h4>
+                    <p class="text-muted">{{ request.user.username }}</p>
+                    <p>{{ request.user.bio }}</p>
+                    {% if request.user.website %}
+                    <a href="{{ request.user.website }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-globe"></i> Website
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'edit_profile' %}" class="btn btn-outline-secondary btn-sm mt-2">
+                        <i class="bi bi-pencil"></i> Edit Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Your Artworks ({{ artworks_count }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if artworks %}
+                    <div class="row row-cols-1 row-cols-md-2 g-4">
+                        {% for artwork in artworks %}
+                        <div class="col">
+                            <div class="card h-100">
+                                <img src="{{ artwork.image.url }}" class="card-img-top" alt="{{ artwork.title }}">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ artwork.title }}</h5>
+                                    <p class="card-text text-muted small">
+                                        Uploaded {{ artwork.created_at|date:"M d, Y" }}
+                                    </p>
+                                    <div class="d-flex justify-content-between">
+                                        <a href="{% url 'edit_art' artwork.id %}"
+                                            class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-pencil"></i> Edit
+                                        </a>
+                                        <form method="POST" action="{% url 'delete_art' artwork.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                onclick="return confirm('Delete this artwork?')">
+                                                <i class="bi bi-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-images fs-1 text-muted"></i>
+                        <h5 class="mt-3">No artworks yet</h5>
+                        <p>Start by uploading your first artwork</p>
+                        <a href="{% url 'upload_art' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-lg"></i> Upload Art
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <!-- Reports Model -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Reports About Your Artworks</h5>
+                </div>
+                <div class="card-body">
+                    {% if reports %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Reported By</th>
+                                    <th>Artwork</th>
+                                    <th>Reason</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for report in reports %}
+                                <tr>
+                                    <td>{{ report.reporter.username }}</td>
+                                    <td>
+                                        <a href="{% url 'artwork_detail' report.artwork.id %}">
+                                            <img src="{{ report.artwork.image.url }}" width="40" height="40">
+                                        </a>
+                                    </td>
+                                    <td>{{ report.get_report_type_display }}</td>
+                                    <td>
+                                        {% if report.is_resolved %}
+                                        <span class="badge bg-success">Resolved</span>
+                                        {% else %}
+                                        <span class="badge bg-warning">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ report.created_at|date:"M d, Y" }}</td>
+
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-success">
+                        <i class="bi bi-check-circle"></i> No reports about your artworks.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <!-- Shares Section -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Shares of Your Artworks ({{ share_count }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if shares %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Shared By</th>
+                                    <th>Artwork</th>
+                                    <th>Shared To</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for share in shares %}
+                                <tr>
+                                    <td>
+                                            {{ share.shared_by.first_name }} {{ share.shared_by.last_name }}
+                                    </td>
+                                    <td>
+                                            <img src="{{ share.artwork.image.url }}" width="40" height="40"
+                                                class="me-2">
+                                            {{ share.artwork.title }}
+                                    </td>
+                                    <td>
+                                        {% if share.shared_to == 'facebook' %}
+                                        <i class="bi bi-facebook text-primary"></i> Facebook
+                                        {% elif share.shared_to == 'twitter' %}
+                                        <i class="bi bi-twitter text-info"></i> Twitter
+                                        {% elif share.shared_to == 'instagram' %}
+                                        <i class="bi bi-instagram text-danger"></i> Instagram
+                                        {% elif share.shared_to == 'whatsapp' %}
+                                        <i class="bi bi-whatsapp text-success"></i> WhatsApp
+                                        {% else %}
+                                        <i class="bi bi-link-45deg"></i> Link
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ share.shared_at|date:"M d, Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Your artworks haven't been shared yet.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

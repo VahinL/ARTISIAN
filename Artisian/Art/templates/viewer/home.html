@@ -1,0 +1,532 @@
+{% extends 'viewer/base.html' %}
+
+{% block title %}Discover Art | Artisian{% endblock %}
+
+{% block content %}
+{% load static %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Header with Sort Options -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">Discover Artwork</h2>
+                    <p class="text-muted mb-0">Explore creative works from talented artists worldwide</p>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-filter"></i> Sort
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-arrow-up"></i> Newest First</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-fire"></i> Most Popular</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-graph-up"></i> Trending</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Artwork Feed -->
+            <div class="artwork-feed">
+                {% for artwork in artworks %}
+                <div class="card mb-4 artwork-card">
+                    <!-- Artist Header -->
+                    <div class="card-header bg-white d-flex align-items-center">
+                        <a href="{% url 'artist_profile' artwork.artist.id %}" class="d-flex align-items-center text-decoration-none">
+                            {% if artwork.artist.profile_picture %}
+                            <img src="{{ artwork.artist.profile_picture.url }}" class="rounded-circle me-2"
+                                width="40" height="40" alt="{{ artwork.artist.username }}">
+                            {% else %}
+                            <img src="{% static 'images/user-profile.jpg' %}" class="rounded-circle me-2" width="40"
+                                height="40" alt="Default profile">
+                            {% endif %}
+                            <div>
+                                <h6 class="mb-0">{{ artwork.artist.get_full_name }}</h6>
+                                <small class="text-muted">{{ artwork.created_at|timesince }} ago</small>
+                            </div>
+                        </a>
+                        <div class="ms-auto">
+                            {% if request.user.is_authenticated %}
+                            <a href="{% url 'follow_artist' artwork.artist.id %}"
+                                class="btn btn-sm {% if artwork.artist.id in following_ids %}btn-outline-primary{% else %}btn-primary{% endif %}">
+                                {% if artwork.artist.id in following_ids %}
+                                <i class="bi bi-check"></i> Following
+                                {% else %}
+                                <i class="bi bi-plus"></i> Follow
+                                {% endif %}
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Artwork Image -->
+                    <div class="position-relative">
+                        <img src="{{ artwork.image.url }}" class="card-img-top w-100" alt="{{ artwork.title }}" style="max-height: 600px; object-fit: contain;">
+                    </div>
+                    
+                    <!-- Artwork Details -->
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h3 class="mb-1">{{ artwork.title }}</h3>
+                                <p class="text-muted mb-2">{{ artwork.medium }} • {{ artwork.dimensions }}</p>
+                            </div>
+                            {% if artwork.price %}
+                            <div class="badge bg-success fs-6">${{ artwork.price }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <p class="mb-3">{{ artwork.description }}</p>
+                        
+                        <!-- Tags -->
+                        <div class="mb-3">
+                            {% for tag in artwork.tags.split|slice:":5" %}
+                            <a href="#" class="badge bg-light text-dark text-decoration-none me-1">#{{ tag }}</a>
+                            {% endfor %}
+                        </div>
+                        
+                        <!-- Interaction Buttons -->
+                        <div class="d-flex justify-content-between align-items-center border-top border-bottom py-2 mb-3">
+                            <div>
+                                <button class="btn btn-sm btn-outline-secondary like-btn"
+                                    data-artwork-id="{{ artwork.id }}">
+                                    <i class="bi bi-heart{% if request.user in artwork.likes.all %}-fill text-danger{% endif %}"></i>
+                                    <span class="like-count ms-1">{{ artwork.num_likes }}</span>
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary ms-2" data-bs-toggle="collapse"
+                                    data-bs-target="#comments-{{ artwork.id }}">
+                                    <i class="bi bi-chat"></i>
+                                    <span class="comment-count ms-1">{{ artwork.num_comments }}</span>
+                                </button>
+                            </div>
+                            <div>
+                                {% if request.user.is_authenticated %}
+                                <button class="btn btn-sm btn-outline-primary share-btn"
+                                    data-artwork-id="{{ artwork.id }}" data-bs-toggle="modal"
+                                    data-bs-target="#shareModal-{{ artwork.id }}">
+                                    <i class="bi bi-share"></i> Share
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger ms-2" data-bs-toggle="modal"
+                                    data-bs-target="#reportModal-{{ artwork.id }}">
+                                    <i class="bi bi-flag"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Comments Section -->
+                        <div class="collapse" id="comments-{{ artwork.id }}">
+                            <div class="mb-3">
+                                {% for comment in artwork.comments.all|slice:":5" %}
+                                <div class="d-flex mb-3">
+                                    <a href="{% url 'artist_profile' comment.user.id %}" class="text-decoration-none">
+                                        {% if comment.user.profile_picture %}
+                                        <img src="{{ comment.user.profile_picture.url }}" class="rounded-circle me-2"
+                                            width="40" height="40" alt="{{ comment.user.username }}">
+                                        {% else %}
+                                        <img src="{% static 'images/user-profile.jpg' %}" class="rounded-circle me-2"
+                                            width="40" height="40" alt="Default profile">
+                                        {% endif %}
+                                    </a>
+                                    <div class="flex-grow-1">
+                                        <div class="bg-light p-3 rounded">
+                                            <div class="d-flex justify-content-between">
+                                                <strong>{{ comment.user.username }}</strong>
+                                                <small class="text-muted">{{ comment.created_at|timesince }} ago</small>
+                                            </div>
+                                            <p class="mb-0 mt-1">{{ comment.content }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+
+                            {% if request.user.is_authenticated %}
+                            <form class="comment-form" data-artwork-id="{{ artwork.id }}">
+                                {% csrf_token %}
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Add a comment..." required>
+                                    <button class="btn btn-primary" type="submit">
+                                        <i class="bi bi-send"></i>
+                                    </button>
+                                </div>
+                            </form>
+                            {% else %}
+                            <div class="alert alert-info py-2">
+                                <a href="{% url 'login' %}" class="text-decoration-none">Login</a> to comment
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-5">
+                    <i class="bi bi-images fs-1 text-muted mb-3"></i>
+                    <h3 class="mb-2">No artworks yet</h3>
+                    <p class="text-muted">Be the first to share your artwork!</p>
+                    {% if request.user.is_authenticated and request.user.user_type == 'artist' %}
+                    <a href="{% url 'upload_art' %}" class="btn btn-primary mt-3">
+                        <i class="bi bi-upload"></i> Upload Your First Artwork
+                    </a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4 sidebaR">
+            <div class="sticky-top" style="top: 20px;">
+                <!-- Suggested Artists -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0 d-flex align-items-center">
+                            <i class="bi bi-people-fill me-2 text-primary"></i> Suggested Artists
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% for artist in suggested_artists %}
+                        <div class="d-flex align-items-center mb-3">
+                            <a href="{% url 'artist_profile' artist.id %}" class="text-decoration-none">
+                                {% if artist.profile_picture %}
+                                <img src="{{ artist.profile_picture.url }}" class="rounded-circle me-3" width="50"
+                                    height="50" alt="{{ artist.username }}">
+                                {% else %}
+                                <img src="{% static 'images/user-profile.jpg' %}" class="rounded-circle me-3" width="50"
+                                    height="50" alt="Default profile">
+                                {% endif %}
+                            </a>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0">{{ artist.get_full_name }}</h6>
+                                <small class="text-muted">{{ artist.followers.count }} followers</small>
+                            </div>
+                            {% if request.user.is_authenticated %}
+                            <a href="{% url 'follow_artist' artist.id %}"
+                                class="btn btn-sm {% if artist.id in following_ids %}btn-outline-primary{% else %}btn-primary{% endif %}">
+                                {% if artist.id in following_ids %}
+                                <i class="bi bi-check"></i>
+                                {% else %}
+                                <i class="bi bi-plus"></i>
+                                {% endif %}
+                            </a>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        <div class="text-center mt-2">
+                            <a href="{% url 'artists_list' %}" class="text-decoration-none">View all artists</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Popular Tags -->
+                <div class="card mb-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0 d-flex align-items-center">
+                            <i class="bi bi-tags-fill me-2 text-primary"></i> Popular Tags
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="tag-cloud">
+                            {% for tag in popular_tags %}
+                            <a href="{% url 'tagged_artworks' tag.slug %}" class="tag">
+                                #{{ tag.name }}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Newsletter Signup -->
+                <div class="card">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0 d-flex align-items-center">
+                            <i class="bi bi-envelope-fill me-2 text-primary"></i> Stay Updated
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="small text-muted">Get the latest artworks and artist features delivered to your inbox</p>
+                        <form class="mt-3">
+                            <div class="mb-3">
+                                <input type="email" class="form-control" placeholder="Your email address" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                Subscribe
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Modal -->
+{% for artwork in artworks %}
+<div class="modal fade" id="reportModal-{{ artwork.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger"><i class="bi bi-flag-fill me-2"></i>Report Artwork</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'report_artwork' artwork.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Reason for reporting</label>
+                        <select class="form-select" name="report_type" required>
+                            <option value="">Select a reason</option>
+                            <option value="spam">Spam</option>
+                            <option value="inappropriate">Inappropriate Content</option>
+                            <option value="copyright">Copyright Violation</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Additional details (optional)</label>
+                        <textarea class="form-control" name="details" rows="3" placeholder="Please provide more information..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Submit Report</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Share Modal -->
+<div class="modal fade" id="shareModal-{{ artwork.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-primary"><i class="bi bi-share-fill me-2"></i>Share Artwork</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form class="share-form" data-artwork-id="{{ artwork.id }}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-4">
+                        <label class="form-label">Share to:</label>
+                        <select class="form-select" name="share_to" required>
+                            <option value="">Select platform</option>
+                            <option value="facebook">Facebook</option>
+                            <option value="twitter">Twitter</option>
+                            <option value="instagram">Instagram</option>
+                            <option value="whatsapp">WhatsApp</option>
+                            <option value="link">Copy Link</option>
+                        </select>
+                    </div>
+                    <div class="d-flex justify-content-center gap-3">
+                        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary px-4">Share</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // CSRF Token setup
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        // Like button functionality
+        document.querySelectorAll('.like-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                if (!csrftoken) {
+                    window.location.href = "{% url 'login' %}?next={{ request.path }}";
+                    return;
+                }
+
+                const artworkId = this.dataset.artworkId;
+                fetch(`/artwork/${artworkId}/like/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'Content-Type': 'application/json',
+                    },
+                    credentials: 'same-origin'
+                })
+                    .then(response => {
+                        if (response.status === 403) {
+                            window.location.href = "{% url 'login' %}?next={{ request.path }}";
+                            return;
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data && data.status === 'ok') {
+                            const icon = this.querySelector('i');
+                            const countSpan = this.querySelector('.like-count');
+
+                            if (data.action === 'liked') {
+                                icon.classList.remove('bi-heart');
+                                icon.classList.add('bi-heart-fill', 'text-danger');
+                            } else {
+                                icon.classList.remove('bi-heart-fill', 'text-danger');
+                                icon.classList.add('bi-heart');
+                            }
+                            countSpan.textContent = data.likes_count;
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            });
+        });
+
+        // Comment form submission
+        document.querySelectorAll('.comment-form').forEach(form => {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                if (!csrftoken) {
+                    window.location.href = "{% url 'login' %}?next={{ request.path }}";
+                    return;
+                }
+
+                const artworkId = this.dataset.artworkId;
+                const contentInput = this.querySelector('input[type="text"]');
+                const content = contentInput.value.trim();
+
+                if (!content) {
+                    contentInput.focus();
+                    return;
+                }
+
+                fetch(`/artwork/${artworkId}/comment/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `content=${encodeURIComponent(content)}`,
+                    credentials: 'same-origin'
+                })
+                    .then(response => {
+                        if (response.status === 403) {
+                            window.location.href = "{% url 'login' %}?next={{ request.path }}";
+                            return;
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data && data.status === 'ok') {
+                            // Create new comment element
+                            const commentsContainer = this.closest('.collapse').querySelector('.mb-3');
+                            const newComment = document.createElement('div');
+                            newComment.className = 'd-flex mb-3';
+                            newComment.innerHTML = `
+                                <a href="${data.comment.profile_url}" class="text-decoration-none">
+                                    <img src="${data.comment.profile_pic}" 
+                                         class="rounded-circle me-2" width="40" height="40"
+                                         alt="${data.comment.username}">
+                                </a>
+                                <div class="flex-grow-1">
+                                    <div class="bg-light p-3 rounded">
+                                        <div class="d-flex justify-content-between">
+                                            <strong>${data.comment.username}</strong>
+                                            <small class="text-muted">just now</small>
+                                        </div>
+                                        <p class="mb-0 mt-1">${data.comment.content}</p>
+                                    </div>
+                                </div>
+                            `;
+                            commentsContainer.prepend(newComment);
+
+                            // Update comment count
+                            const commentCount = this.closest('.card-body').querySelector('.comment-count');
+                            commentCount.textContent = parseInt(commentCount.textContent) + 1;
+
+                            // Clear input
+                            contentInput.value = '';
+                        } else if (data && data.status === 'error') {
+                            alert(data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            });
+        });
+
+        // Share functionality
+        document.querySelectorAll('.share-form').forEach(form => {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                if (!csrftoken) {
+                    window.location.href = "{% url 'login' %}?next={{ request.path }}";
+                    return;
+                }
+
+                const artworkId = this.dataset.artworkId;
+                const shareTo = this.querySelector('select[name="share_to"]').value;
+
+                if (!shareTo) {
+                    return;
+                }
+
+                fetch(`/artwork/${artworkId}/share/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `share_to=${encodeURIComponent(shareTo)}`,
+                    credentials: 'same-origin'
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Show toast notification
+                            const toast = new bootstrap.Toast(document.getElementById('shareToast'));
+                            document.getElementById('toastMessage').textContent = data.message;
+                            toast.show();
+                            
+                            // Close the modal
+                            const modal = bootstrap.Modal.getInstance(document.getElementById(`shareModal-${artworkId}`));
+                            modal.hide();
+                        } else {
+                            alert(data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            });
+        });
+    });
+</script>
+
+<!-- Toast Notification for Share Success -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1000">
+    <div id="shareToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-primary text-white">
+            <strong class="me-auto">Success</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            <span id="toastMessage">Artwork shared successfully!</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

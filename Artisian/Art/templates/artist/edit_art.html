@@ -1,0 +1,225 @@
+{% extends 'artist/base.html' %}
+
+{% block title %}Edit Artwork | Artisian{% endblock %}
+
+{% block extra_css %}
+<style>
+    .edit-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+    }
+    
+    .edit-header {
+        background: linear-gradient(135deg, #6f42c1, #20c997);
+        color: white;
+        padding: 1.5rem;
+        border-bottom: none;
+    }
+    
+    .edit-header h4 {
+        font-weight: 600;
+        margin-bottom: 0;
+    }
+    
+    .edit-body {
+        padding: 2rem;
+    }
+    
+    .current-image {
+        max-height: 300px;
+        width: auto;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+        border: 1px solid #eee;
+    }
+    
+    .form-label {
+        font-weight: 500;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control, .form-control:focus {
+        border-color: #dee2e6;
+        border-radius: 8px;
+        padding: 0.75rem 1rem;
+    }
+    
+    .form-control:focus {
+        border-color: #20c997;
+        box-shadow: 0 0 0 0.25rem rgba(32, 201, 151, 0.25);
+    }
+    
+    .action-btn {
+        padding: 0.75rem;
+        font-weight: 500;
+        border-radius: 8px;
+        transition: all 0.3s;
+    }
+    
+    .action-btn:hover {
+        transform: translateY(-2px);
+    }
+    
+    .preview-container {
+        display: none;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+    
+    .image-preview {
+        max-width: 100%;
+        max-height: 250px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        border: 1px solid #eee;
+    }
+    
+    .divider {
+        display: flex;
+        align-items: center;
+        margin: 1.5rem 0;
+        color: #6c757d;
+    }
+    
+    .divider::before, .divider::after {
+        content: "";
+        flex: 1;
+        border-bottom: 1px solid #dee2e6;
+    }
+    
+    .divider::before {
+        margin-right: 1rem;
+    }
+    
+    .divider::after {
+        margin-left: 1rem;
+    }
+    
+    .image-upload-container {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+    
+    .change-image-btn {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        background-color: rgba(0,0,0,0.7);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+    }
+    
+    .change-image-btn:hover {
+        background-color: rgba(0,0,0,0.9);
+        transform: translateY(-2px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-7">
+            <div class="card edit-card">
+                <div class="card-header edit-header">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-pencil-square me-3" style="font-size: 1.75rem;"></i>
+                        <h4 class="mb-0">Edit Artwork</h4>
+                    </div>
+                </div>
+                <div class="card-body edit-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Current Image with Change Button -->
+                        <div class="image-upload-container text-center">
+                            <img src="{{ artwork.image.url }}" class="current-image" alt="{{ artwork.title }}">
+                            <button type="button" class="change-image-btn" onclick="document.getElementById('image').click()">
+                                <i class="bi bi-arrow-repeat me-1"></i> Change Image
+                            </button>
+                        </div>
+                        
+                        <!-- New Image Preview -->
+                        <div class="preview-container" id="previewContainer">
+                            <img id="imagePreview" class="image-preview img-fluid" alt="New artwork preview">
+                            <p class="text-muted mt-2">New image preview</p>
+                        </div>
+                        
+                        <!-- Title Field -->
+                        <div class="mb-4">
+                            <label for="title" class="form-label">Title*</label>
+                            <input type="text" class="form-control" id="title" name="title" 
+                                   value="{{ artwork.title }}" required>
+                        </div>
+                        
+                        <!-- Image Upload Field (hidden, triggered by button) -->
+                        <div class="mb-4" style="display: none;">
+                            <input type="file" class="form-control" id="image" name="image" 
+                                   accept="image/*" onchange="previewImage(event)">
+                        </div>
+                        
+                        <!-- Description Field -->
+                        <div class="mb-4">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" 
+                                      rows="4">{{ artwork.description }}</textarea>
+                        </div>
+                        
+                        <!-- Tags Field -->
+                        <div class="mb-4">
+                            <label for="tags" class="form-label">Tags</label>
+                            <input type="text" class="form-control" id="tags" name="tags" 
+                                   value="{{ artwork.tags }}"
+                                   placeholder="e.g., abstract, painting, digital, landscape">
+                            <div class="form-text mt-2">Update tags to improve discoverability</div>
+                        </div>
+                        
+                        <div class="divider">or</div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="d-grid gap-3">
+                            <button type="submit" class="btn btn-primary action-btn">
+                                <i class="bi bi-save-fill me-2"></i> Save Changes
+                            </button>
+                            <a href="{% url 'artist_dashboard' %}" class="btn btn-outline-secondary action-btn">
+                                <i class="bi bi-x-circle me-2"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function previewImage(event) {
+        const input = event.target;
+        const previewContainer = document.getElementById('previewContainer');
+        const previewImage = document.getElementById('imagePreview');
+        
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewContainer.style.display = 'block';
+            }
+            
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            previewContainer.style.display = 'none';
+        }
+    }
+</script>
+{% endblock %}

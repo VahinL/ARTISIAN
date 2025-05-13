@@ -1,0 +1,334 @@
+{% extends 'adminT/admin_base.html' %}
+
+{% block title %}Content Monitoring{% endblock %}
+{% block heading %}Content Monitoring Dashboard{% endblock %}
+
+{% block content %}
+<ul class="nav nav-tabs" id="contentTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button"
+            role="tab" aria-controls="reports" aria-selected="true">
+            <i class="fas fa-flag"></i> Reports ({{ reports.count }})
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="artworks-tab" data-bs-toggle="tab" data-bs-target="#artworks" type="button"
+            role="tab" aria-controls="artworks" aria-selected="false">
+            <i class="fas fa-paint-brush"></i> Recent Artworks
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments" type="button"
+            role="tab" aria-controls="comments" aria-selected="false">
+            <i class="fas fa-comments"></i> Recent Comments
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="shares-tab" data-bs-toggle="tab" data-bs-target="#shares" type="button" role="tab"
+            aria-controls="shares" aria-selected="false">
+            <i class="fas fa-share-alt"></i> Shares ({{ shares.count }})
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content mt-3" id="contentTabsContent">
+    <!-- Reports Tab -->
+    <div class="tab-pane fade show active" id="reports" role="tabpanel" aria-labelledby="reports-tab">
+        <div class="card">
+            <div class="card-body">
+                {% if reports %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Reported Content</th>
+                                <th>Type</th>
+                                <th>Reported By</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for report in reports %}
+                            <tr>
+                                <td>{{ report.artwork.title|truncatechars:30 }}</td>
+                                <td>{{ report.report_type }}</td>
+                                <td>{{ report.reporter.first_name }} {{ report.reporter.last_name }}</td>
+                                <td>
+                                    {% if report.details %}
+                                    {{ report.details }}
+                                    {% else %}
+                                    -----
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span
+                                        class="badge {% if report.is_resolved %}badge-resolved{% else %}badge-pending{% endif %}">
+                                        {% if report.is_resolved %}Resolved{% else %}Pending{% endif %}
+                                    </span>
+                                </td>
+                                <td>{{ report.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    {% if not report.is_resolved %}
+                                    <form method="POST" action="{% url 'resolve_report' report.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-success action-btn">
+                                            <i class="fas fa-check"></i> Resolve
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    <button class="btn btn-sm btn-primary action-btn" data-bs-toggle="modal"
+                                        data-bs-target="#reportModal{{ report.id }}">
+                                        <i class="fas fa-eye"></i> View
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Report Details Modal -->
+                            <div class="modal fade" id="reportModal{{ report.id }}" tabindex="-1"
+                                aria-labelledby="reportModalLabel" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="reportModalLabel">Report Details</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="row mb-3">
+                                                <div class="col-md-3 fw-bold">Reported Content:</div>
+                                                <div class="col-md-9">{{ report.reported_content }}</div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-md-3 fw-bold">Content Type:</div>
+                                                <div class="col-md-9">{{ report.get_content_type_display }}</div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-md-3 fw-bold">Reported By:</div>
+                                                <div class="col-md-9">{{ report.reported_by.username }} ({{
+                                                    report.reported_by.email }})</div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-md-3 fw-bold">Reason:</div>
+                                                <div class="col-md-9">
+                                                    {{ report.get_reason_display }}
+                                                    {% if report.description %}
+                                                    <p class="mt-2">{{ report.description }}</p>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-md-3 fw-bold">Status:</div>
+                                                <div class="col-md-9">
+                                                    <span
+                                                        class="badge {% if report.is_resolved %}badge-resolved{% else %}badge-pending{% endif %}">
+                                                        {% if report.is_resolved %}Resolved{% else %}Pending{% endif %}
+                                                    </span>
+                                                    {% if report.is_resolved %}
+                                                    <span class="ms-2">Resolved by {{ report.resolved_by.username }} on
+                                                        {{ report.resolved_at|date:"M d, Y" }}</span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <div class="row mb-3">
+                                                <div class="col-md-3 fw-bold">Report Date:</div>
+                                                <div class="col-md-9">{{ report.created_at|date:"M d, Y H:i" }}</div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Close</button>
+                                            {% if not report.is_resolved %}
+                                            <form method="POST" action="{% url 'resolve_report' report.id %}">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-success">
+                                                    <i class="fas fa-check"></i> Mark as Resolved
+                                                </button>
+                                            </form>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i> There are no active reports at this time.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Artworks Tab -->
+    <div class="tab-pane fade" id="artworks" role="tabpanel" aria-labelledby="artworks-tab">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Artist</th>
+                                <th>Upload Date</th>
+                                <th>Likes</th>
+                                <!-- <th>Actions</th> -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for artwork in artworks %}
+                            <tr>
+                                <td>{{ artwork.title }}</td>
+                                <td>{{ artwork.artist.username }}</td>
+                                <td>{{ artwork.upload_date|date:"M d, Y" }}</td>
+                                <td>{{ artwork.likes.count }}</td>
+                                <!-- <td>
+                                    <a href="#" class="btn btn-sm btn-primary action-btn">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </td> -->
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comments Tab -->
+    <div class="tab-pane fade" id="comments" role="tabpanel" aria-labelledby="comments-tab">
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Comment</th>
+                                <th>User</th>
+                                <th>Artist</th>
+                                <th>Artwork</th>
+                                <th>Date</th>
+                                <!-- <th>Actions</th> -->
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for comment in comments %}
+                            <tr>
+                                <td>{{ comment.content|truncatechars:50 }}</td>
+                                <td>{{ comment.user.first_name }} {{ comment.user.last_name }}</td>
+                                <td>{{ comment.artwork.artist.first_name }} {{ comment.artwork.artist.last_name }}</td>
+                                <td>{{ comment.artwork.title|truncatechars:20 }}</td>
+                                <td>{{ comment.created_at|date:"M d, Y" }}</td>
+                                <!-- <td>
+                                    <a href="#" class="btn btn-sm btn-primary action-btn">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </td> -->
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Shares Tab -->
+    <div class="tab-pane fade" id="shares" role="tabpanel" aria-labelledby="shares-tab">
+        <div class="card">
+            <div class="card-body">
+                {% if shares %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Artwork</th>
+                                <th>Artist</th>
+                                <th>Shared By</th>
+                                <th>Shared To</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for share in shares %}
+                            <tr>
+                                <td>
+                                    <img src="{{ share.artwork.image.url }}" width="40" height="40"
+                                    class="me-2">
+                                    {{ share.artwork.title|truncatechars:30 }}
+                                </td>
+                                <td>
+                                    {{ share.artwork.artist.first_name }} {{ share.artwork.artist.last_name }}
+                                </td>
+                                <td>
+                                    {{ share.shared_by.first_name }} {{ share.shared_by.last_name }}
+                                </td>
+                                <td>
+                                    {% if share.shared_to == 'facebook' %}
+                                    <i class="fab fa-facebook text-primary"></i> Facebook
+                                    {% elif share.shared_to == 'twitter' %}
+                                    <i class="fab fa-twitter text-info"></i> Twitter
+                                    {% elif share.shared_to == 'instagram' %}
+                                    <i class="fab fa-instagram text-danger"></i> Instagram
+                                    {% elif share.shared_to == 'whatsapp' %}
+                                    <i class="fab fa-whatsapp text-success"></i> WhatsApp
+                                    {% else %}
+                                    <i class="fas fa-link"></i> Link
+                                    {% endif %}
+                                </td>
+                                <td>{{ share.shared_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <a href="{% url 'artwork_detail' share.artwork.id %}"
+                                        class="btn btn-sm btn-primary action-btn">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No shares recorded yet.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Initialize tab functionality
+    document.addEventListener('DOMContentLoaded', function () {
+        // Enable tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+
+        // Store the active tab in localStorage
+        var tabEls = document.querySelectorAll('button[data-bs-toggle="tab"]')
+        tabEls.forEach(function (tabEl) {
+            tabEl.addEventListener('click', function (event) {
+                localStorage.setItem('activeContentTab', event.target.getAttribute('id'))
+            })
+        })
+
+        // Retrieve the active tab from localStorage
+        var activeTab = localStorage.getItem('activeContentTab')
+        if (activeTab) {
+            var tab = new bootstrap.Tab(document.querySelector('#' + activeTab))
+            tab.show()
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

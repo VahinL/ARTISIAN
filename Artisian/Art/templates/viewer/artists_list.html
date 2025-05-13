@@ -1,0 +1,56 @@
+{% extends 'viewer/base.html' %}
+
+{% block title %}Artists | Artisian{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">Featured Artists</h1>
+    
+    <div class="row">
+        {% for artist in artists %}
+        <div class="col-md-4 mb-4">
+            <div class="card artwork-card h-100">
+                <div class="card-body text-center">
+                    <a href="{% url 'artist_profile' artist.id %}">
+                        {% if artist.profile_picture %}
+                        <img src="{{ artist.profile_picture.url }}" class="rounded-circle mb-3" width="150" height="150">
+                        {% else %}
+                        <div class="rounded-circle d-flex align-items-center justify-content-center mb-3" 
+                             style="width: 150px; height: 150px; background: #e9ecef; margin: 0 auto;">
+                            <i class="bi bi-person" style="font-size: 3rem; color: #20c997;"></i>
+                        </div>
+                        {% endif %}
+                    </a>
+                    <h3>{{ artist.username }}</h3>
+                    {% if artist.bio %}
+                    <p class="text-muted">{{ artist.bio|truncatechars:100 }}</p>
+                    {% endif %}
+                    <div class="d-flex justify-content-center">
+                        <span class="badge bg-light text-dark me-2">
+                            <i class="bi bi-images"></i> {{ artist.artworks.count }}
+                        </span>
+                        <span class="badge bg-light text-dark">
+                            <i class="bi bi-people"></i> {{ artist.followers.count }}
+                        </span>
+                    </div>
+                    {% if request.user.is_authenticated and request.user != artist %}
+                    <a href="{% url 'follow_artist' artist.id %}" class="btn btn-sm mt-3 {% if artist.id in following_ids %}btn-outline-primary{% else %}btn-primary{% endif %}">
+                        {% if artist.id in following_ids %}
+                            Following
+                        {% else %}
+                            Follow
+                        {% endif %}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="bi bi-people fs-1 text-muted"></i>
+            <h3 class="mt-3">No artists yet</h3>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

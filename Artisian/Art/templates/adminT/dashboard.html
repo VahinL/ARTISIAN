@@ -1,0 +1,212 @@
+{% extends 'adminT/admin_base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+{% block heading %}Dashboard Overview{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Stats Cards -->
+    <div class="col-md-3">
+        <div class="card stat-card users">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Total Users</h6>
+                        <h2>{{ stats.total_users }}</h2>
+                    </div>
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card stat-card pending">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Pending Approvals</h6>
+                        <h2>{{ stats.pending_approvals }}</h2>
+                    </div>
+                    <i class="fas fa-user-clock"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card stat-card artworks">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Total Artworks</h6>
+                        <h2>{{ stats.total_artworks }}</h2>
+                    </div>
+                    <i class="fas fa-paint-brush"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card stat-card reports">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title">Active Reports</h6>
+                        <h2>{{ stats.recent_reports }}</h2>
+                    </div>
+                    <i class="fas fa-flag"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Recent Users</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Type</th>
+                                <th>Joined</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in recent_users %}
+                            <tr>
+                                <td>{{ user.username }}</td>
+                                <td>
+                                    <span
+                                        class="badge {% if user.user_type == 'artist' %}badge-artist{% else %}badge-viewer{% endif %}">
+                                        {{ user.get_user_type_display }}
+                                    </span>
+                                </td>
+                                <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                                <td>
+                                    {% if user.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Recent Reports</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Reported Item</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for report in recent_reports %}
+                            <tr>
+                                <td>{{ report.artwork.title|truncatechars:20 }}</td>
+                                <td>{{ report.report_type }}</td>
+                                <td>
+                                    <span
+                                        class="badge {% if report.is_resolved %}badge-resolved{% else %}badge-pending{% endif %}">
+                                        {% if report.is_resolved %}Resolved{% else %}Pending{% endif %}
+                                    </span>
+                                </td>
+                                <td>{{ report.created_at|date:"M d, Y" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>User Statistics</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="userStatsChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // User Statistics Chart
+        const ctx = document.getElementById('userStatsChart').getContext('2d');
+        const userStatsChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Active Artists', 'Active Viewers', 'Total Users'],
+                datasets: [{
+                    label: 'User Count',
+                    data: [
+                        {{ stats.active_artists }},
+                {{ stats.active_viewers }},
+                    {{ stats.total_users }}
+                ],
+        backgroundColor: [
+        'rgba(108, 92, 231, 0.7)',
+        'rgba(0, 206, 201, 0.7)',
+        'rgba(253, 203, 110, 0.7)'
+    ],
+        borderColor: [
+        'rgba(108, 92, 231, 1)',
+        'rgba(0, 206, 201, 1)',
+        'rgba(253, 203, 110, 1)'
+    ],
+        borderWidth: 1
+            }]
+        },
+        options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    precision: 0 // Ensures whole numbers on y-axis
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                display: false // Hide the legend if you prefer
+            }
+        }
+    }
+    });
+});
+</script>
+{% endblock %}

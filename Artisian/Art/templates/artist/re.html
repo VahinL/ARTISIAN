@@ -1,0 +1,71 @@
+<div class="tab-content mt-3" id="contentTabsContent">
+    <!-- Existing tabs... -->
+    
+    <!-- Shares Tab -->
+    <div class="tab-pane fade" id="shares" role="tabpanel" aria-labelledby="shares-tab">
+        <div class="card">
+            <div class="card-body">
+                {% if shares %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Artwork</th>
+                                <th>Artist</th>
+                                <th>Shared By</th>
+                                <th>Shared To</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for share in shares %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'artwork_detail' share.artwork.id %}">
+                                        {{ share.artwork.title|truncatechars:30 }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="{% url 'artist_profile' share.artwork.artist.id %}">
+                                        {{ share.artwork.artist.username }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="{% url 'artist_profile' share.shared_by.id %}">
+                                        {{ share.shared_by.username }}
+                                    </a>
+                                </td>
+                                <td>
+                                    {% if share.shared_to == 'facebook' %}
+                                    <i class="fab fa-facebook text-primary"></i> Facebook
+                                    {% elif share.shared_to == 'twitter' %}
+                                    <i class="fab fa-twitter text-info"></i> Twitter
+                                    {% elif share.shared_to == 'instagram' %}
+                                    <i class="fab fa-instagram text-danger"></i> Instagram
+                                    {% elif share.shared_to == 'whatsapp' %}
+                                    <i class="fab fa-whatsapp text-success"></i> WhatsApp
+                                    {% else %}
+                                    <i class="fas fa-link"></i> Link
+                                    {% endif %}
+                                </td>
+                                <td>{{ share.shared_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <a href="{% url 'artwork_detail' share.artwork.id %}" class="btn btn-sm btn-primary action-btn">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No shares recorded yet.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

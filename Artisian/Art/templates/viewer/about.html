@@ -1,0 +1,166 @@
+{% extends 'viewer/base.html' %}
+
+{% block title %}About Artisian | The Artist's Community{% endblock %}
+
+{% block extra_css %}
+{% load static %}
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #20c997 0%, #6f42c1 100%);
+        color: white;
+        padding: 5rem 0;
+        border-radius: 0 0 20px 20px;
+    }
+    .feature-card {
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+        transition: transform 0.3s;
+        height: 100%;
+    }
+    .feature-card:hover {
+        transform: translateY(-10px);
+    }
+    .feature-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: #20c997;
+    }
+    .team-member {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    .team-img {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 5px solid #20c997;
+        margin-bottom: 1rem;
+    }
+    .stats-number {
+        font-size: 3rem;
+        font-weight: 700;
+        color: #20c997;
+    }
+    .artwork-showcase {
+        border-radius: 15px;
+        overflow: hidden;
+        height: 300px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section text-center mb-5">
+    <div class="container">
+        <h1 class="display-4 fw-bold mb-4">Where Art Finds Its Audience</h1>
+        <p class="lead mb-5">Artisian is a vibrant community connecting artists with art lovers worldwide</p>
+        <a href="{% url 'register' %}?type=artist" class="btn btn-light btn-lg me-2">Join as Artist</a>
+        <a href="{% url 'register' %}?type=viewer" class="btn btn-outline-light btn-lg">Join as Art Lover</a>
+    </div>
+</section>
+
+<!-- Features Section -->
+<div class="container mb-5">
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="feature-card card shadow-sm p-4">
+                <div class="text-center">
+                    <i class="bi bi-palette feature-icon"></i>
+                    <h3>Showcase</h3>
+                    <p>Present your portfolio to a global audience with beautiful gallery displays and artist profiles.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card card shadow-sm p-4">
+                <div class="text-center">
+                    <i class="bi bi-people feature-icon"></i>
+                    <h3>Connect</h3>
+                    <p>Build meaningful connections with fellow artists and art enthusiasts through comments and messages.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-card card shadow-sm p-4">
+                <div class="text-center">
+                    <i class="bi bi-graph-up feature-icon"></i>
+                    <h3>Grow</h3>
+                    <p>Gain exposure, receive feedback, and find new opportunities to take your art career to the next level.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Section -->
+<section class="py-5 bg-light mb-5">
+    <div class="container text-center">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stats-number">5,000+</div>
+                <p>Artists</p>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-number">50,000+</div>
+                <p>Artworks</p>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-number">100+</div>
+                <p>Countries</p>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-number">1M+</div>
+                <p>Connections</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Team Section -->
+<div class="container mb-5">
+    <h2 class="text-center mb-5">Meet Our Team</h2>
+    <div class="row">
+        <div class="col-md-4 team-member">
+            <img src="{% static 'images/artists/r4.jpg' %}" alt="Team Member" class="team-img">
+            <h4>Sarah  Chen</h4>
+            <p class="text-muted">Founder & CEO</p>
+            <p>Artist and entrepreneur passionate about connecting creators.</p>
+        </div>
+        <div class="col-md-4 team-member">
+            <img src="{% static 'images/artists/r1.jpg' %}" alt="Team Member" class="team-img">
+            <h4>David Park</h4>
+            <p class="text-muted">CTO</p>
+            <p>Tech visionary building platforms for creative communities.</p>
+        </div>
+        <div class="col-md-4 team-member">
+            <img src="{% static 'images/artists/r3.jpg' %}" alt="Team Member" class="team-img">            <h4>Maria Gonzalez</h4>
+            <p class="text-muted">Community Director</p>
+            <p>Connecting artists with opportunities worldwide.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Artwork Showcase -->
+<div class="container-fluid mb-5">
+    <div class="row g-0">
+        <div class="col-md-4">
+            <div class="artwork-showcase">
+                <img src="{% static 'images/art/u1.jpg' %}" alt="Artwork" class="img-fluid w-100 h-100" style="object-fit: cover;">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="artwork-showcase">
+                <img src="{% static 'images/art/u3.jpg' %}" alt="Artwork" class="img-fluid w-100 h-100" style="object-fit: cover;">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="artwork-showcase">
+                <img src="{% static 'images/art/g12.jpg' %}" alt="Artwork" class="img-fluid w-100 h-100" style="object-fit: cover;">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

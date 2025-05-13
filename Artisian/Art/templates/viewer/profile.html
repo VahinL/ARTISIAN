@@ -1,0 +1,159 @@
+{% extends 'viewer/base.html' %}
+
+{% block title %}My Profile | Artisian{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Profile Header -->
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <h1 class="display-5">My Profile</h1>
+            <p class="lead text-muted">Manage your personal information and preferences</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column - Profile Card -->
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4 text-center">
+                    <div class="position-relative mb-4 mx-auto" style="width: 150px; height: 150px;">
+                        {% if user.profile_picture %}
+                        <img id="profileImage" src="{{ user.profile_picture.url }}" class="rounded-circle" width="150" height="150" 
+                             style="object-fit: cover; border: 3px solid var(--primary-color);">
+                        {% else %}
+                        <div id="profilePlaceholder" class="rounded-circle d-flex align-items-center justify-content-center h-100 w-100" 
+                             style="background: #e9ecef; border: 3px solid var(--primary-color);">
+                            <i class="bi bi-person" style="font-size: 3rem; color: var(--primary-color);"></i>
+                        </div>
+                        {% endif %}
+                        <label for="profilePicture" class="position-absolute bottom-0 end-0 bg-white rounded-circle p-2 shadow-sm" 
+                               style="cursor: pointer;">
+                            <i class="bi bi-camera-fill text-primary"></i>
+                        </label>
+                        <input type="file" id="profilePicture" name="profile_picture" accept="image/*" class="d-none">
+                    </div>
+                    
+                    <h4>{{ user.get_full_name|default:user.username }}</h4>
+                    <p class="text-muted mb-3">@{{ user.username }}</p>
+                    
+                    {% if user.bio %}
+                    <p class="mb-4">{{ user.bio }}</p>
+                    {% else %}
+                    <p class="mb-4 text-muted">No bio yet</p>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-center gap-2 mb-4">
+                        <button class="btn btn-sm btn-outline-primary" onclick="document.getElementById('profilePicture').click()">
+                            <i class="bi bi-camera me-1"></i> Change Photo
+                        </button>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="mb-3">
+                        <h6 class="mb-3">Account Stats</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Following</span>
+                            <span>{{ following_count }} artists</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Member since</span>
+                            <span>{{ user.date_joined|date:"M Y" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Profile Form -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0">Profile Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data" id="profileForm">
+                        {% csrf_token %}
+                        <input type="file" id="profilePictureInput" name="profile_picture" accept="image/*" class="d-none">
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">First Name</label>
+                                <input type="text" class="form-control" value="{{ user.first_name }}" name="first_name">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Last Name</label>
+                                <input type="text" class="form-control" value="{{ user.last_name }}" name="last_name">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Username</label>
+                                <input type="text" class="form-control" value="{{ user.username }}" disabled>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" value="{{ user.email }}" name="email">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="bio" class="form-label">About Me</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="4" 
+                                      placeholder="Tell us about yourself and your artistic interests">{{ user.bio|default_if_none:'' }}</textarea>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center border-top pt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-1"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Profile picture preview and form submission
+    document.addEventListener('DOMContentLoaded', function() {
+        const profilePictureInput = document.getElementById('profilePicture');
+        const profilePictureFormInput = document.getElementById('profilePictureInput');
+        const profileForm = document.getElementById('profileForm');
+        
+        // Preview image when selected
+        profilePictureInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    // Check if we have an existing image or placeholder
+                    const existingImage = document.getElementById('profileImage');
+                    const placeholder = document.getElementById('profilePlaceholder');
+                    
+                    if (existingImage) {
+                        existingImage.src = event.target.result;
+                    } else if (placeholder) {
+                        // Replace placeholder with image
+                        placeholder.innerHTML = `
+                            <img id="profileImage" src="${event.target.result}" class="rounded-circle" 
+                                 width="150" height="150" style="object-fit: cover; border: 3px solid var(--primary-color);">
+                        `;
+                    }
+                    
+                    // Also update the form's file input
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(file);
+                    profilePictureFormInput.files = dataTransfer.files;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Ensure the form is submitted when profile picture is changed
+        profilePictureInput.addEventListener('change', function() {
+            profileForm.dispatchEvent(new Event('submit', { bubbles: true }));
+        });
+    });
+</script>
+{% endblock %}

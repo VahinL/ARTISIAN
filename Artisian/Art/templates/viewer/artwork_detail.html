@@ -1,0 +1,58 @@
+{% extends 'viewer/base.html' %}
+
+{% block title %}{{ artwork.title }} | Artisian{% endblock %}
+
+{% block content %}
+{% load static %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <div class="d-flex align-items-center">
+                        <a href="{% url 'artist_profile' artwork.artist.id %}">
+                            {% if artwork.artist.profile_picture %}
+                            <img src="{{ artwork.artist.profile_picture.url }}" class="rounded-circle me-2" width="40" height="40">
+                            {% else %}
+                            <img src="{% static 'images/user-profile.jpg' %}" class="rounded-circle me-2" width="40" height="40">
+                            {% endif %}
+                        </a>
+                        <div>
+                            <h6 class="mb-0">{{ artwork.artist.username }}</h6>
+                        </div>
+                    </div>
+                </div>
+                <img src="{{ artwork.image.url }}" class="card-img-top" alt="{{ artwork.title }}">
+                <div class="card-body">
+                    <h3>{{ artwork.title }}</h3>
+                    <p>{{ artwork.description }}</p>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <button class="btn btn-sm btn-outline-secondary like-btn"
+                                data-artwork-id="{{ artwork.id }}">
+                                <i class="bi bi-heart{% if request.user in artwork.likes.all %}-fill text-danger{% endif %}"></i>
+                                <span class="like-count">{{ artwork.likes.count }}</span>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary ms-2" data-bs-toggle="collapse"
+                                data-bs-target="#comments-{{ artwork.id }}">
+                                <i class="bi bi-chat"></i>
+                                <span class="comment-count">{{ artwork.comments.count }}</span>
+                            </button>
+                        </div>
+                        <div class="text-muted">
+                            {% for tag in artwork.tags.split|slice:":3" %}
+                            <span class="badge bg-light text-dark">#{{ tag }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <!-- Comments Section -->
+                    <div class="collapse" id="comments-{{ artwork.id }}">
+                        <!-- Similar to your home.html comments section -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

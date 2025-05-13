@@ -1,0 +1,141 @@
+{% extends 'artist/base.html' %}
+
+{% block title %}Edit Profile | Artisian{% endblock %}
+
+{% block content %}
+{% load static %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <!-- Profile Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="display-5">Edit Profile</h1>
+                    <p class="lead text-muted">Update your artist information</p>
+                </div>
+                <a href="{% url 'artist_dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+
+            <!-- Profile Card -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="POST" enctype="multipart/form-data" id="profileForm">
+                        {% csrf_token %}
+                        
+                        <!-- Profile Picture Section -->
+                        <div class="text-center mb-4">
+                            <div class="position-relative d-inline-block">
+                                {% if request.user.profile_picture %}
+                                <img id="profileImage" src="{{ request.user.profile_picture.url }}" 
+                                     class="rounded-circle" width="150" height="150" 
+                                     style="object-fit: cover; border: 3px solid var(--primary-color);">
+                                {% else %}
+                                <div id="profilePlaceholder" class="rounded-circle d-flex align-items-center justify-content-center" 
+                                     style="width: 150px; height: 150px; background: #e9ecef; border: 3px solid var(--primary-color);">
+                                    <i class="bi bi-person" style="font-size: 3rem; color: var(--primary-color);"></i>
+                                </div>
+                                {% endif %}
+                                <label for="profile_pic" class="position-absolute bottom-0 end-0 bg-white rounded-circle p-2 shadow-sm" 
+                                       style="cursor: pointer;">
+                                    <i class="bi bi-camera-fill text-primary"></i>
+                                </label>
+                                <input type="file" id="profile_pic" name="profile_pic" accept="image/*" class="d-none">
+                            </div>
+                        </div>
+
+                        <!-- Form Fields -->
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="first_name" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name"
+                                    value="{{ request.user.first_name }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="last_name" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name"
+                                    value="{{ request.user.last_name }}" required>
+                            </div>
+                            
+                            <div class="col-12">
+                                <label for="bio" class="form-label">Artist Bio</label>
+                                <textarea class="form-control" id="bio" name="bio" rows="4"
+                                    placeholder="Tell us about your artistic style and inspiration">{{ request.user.bio }}</textarea>
+                            </div>
+                            
+                            <div class="col-12">
+                                <label for="website" class="form-label">Website</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-globe"></i></span>
+                                    <input type="url" class="form-control" id="website" name="website"
+                                        value="{{ request.user.website }}" placeholder="https://yourportfolio.com">
+                                </div>
+                            </div>
+                            
+                            <!-- Social Media Links (Optional) -->
+                            <!-- <div class="col-12">
+                                <label class="form-label">Social Media</label>
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text"><i class="bi bi-instagram text-danger"></i></span>
+                                    <input type="text" class="form-control" placeholder="Instagram" name="instagram"
+                                        value="{{ request.user.social_links.instagram|default:'' }}">
+                                </div>
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text"><i class="bi bi-facebook text-primary"></i></span>
+                                    <input type="text" class="form-control" placeholder="Facebook" name="facebook"
+                                        value="{{ request.user.social_links.facebook|default:'' }}">
+                                </div>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-twitter text-info"></i></span>
+                                    <input type="text" class="form-control" placeholder="Twitter" name="twitter"
+                                        value="{{ request.user.social_links.twitter|default:'' }}">
+                                </div>
+                            </div> -->
+                            
+                            <!-- Form Actions -->
+                            <div class="col-12 mt-4 pt-3 border-top">
+                                <div class="d-flex justify-content-between">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-save"></i> Save Profile
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Profile picture preview
+    document.addEventListener('DOMContentLoaded', function() {
+        const profilePicInput = document.getElementById('profile_pic');
+        
+        profilePicInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    // Check if we have an existing image or placeholder
+                    const existingImage = document.getElementById('profileImage');
+                    const placeholder = document.getElementById('profilePlaceholder');
+                    
+                    if (existingImage) {
+                        existingImage.src = event.target.result;
+                    } else if (placeholder) {
+                        // Replace placeholder with image
+                        placeholder.innerHTML = `
+                            <img id="profileImage" src="${event.target.result}" class="rounded-circle" 
+                                 width="150" height="150" style="object-fit: cover; border: 3px solid var(--primary-color);">
+                        `;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    });
+</script>
+{% endblock %}

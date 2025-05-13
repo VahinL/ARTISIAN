@@ -1,0 +1,308 @@
+{% extends 'artist/base.html' %}
+
+{% block title %}Artist Dashboard | Artisian{% endblock %}
+
+{% block content %}
+{% load static %}
+<div class="container py-5">
+    <!-- Dashboard Header -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center">
+                {% if request.user.profile_picture %}
+                <img src="{{ request.user.profile_picture.url }}" class="rounded-circle me-3" width="80" height="80" alt="Profile">
+                {% else %}
+                <img src="{% static 'images/user-profile.jpg' %}" class="rounded-circle me-3" width="80" height="80" alt="Profile">
+                {% endif %}
+                <div>
+                    <h1 class="display-6 mb-1">Welcome back, {{ request.user.first_name|default:request.user.username }}</h1>
+                    <p class="lead text-muted mb-0">Manage your artistic portfolio</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <a href="{% url 'upload_art' %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg me-2"></i>Upload New Art
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded me-3">
+                            <i class="bi bi-image text-primary fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Total Artworks</h6>
+                            <h3 class="mb-0">{{ artworks_count }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-success bg-opacity-10 p-3 rounded me-3">
+                            <i class="bi bi-share text-success fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Total Shares</h6>
+                            <h3 class="mb-0">{{ share_count }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="bg-warning bg-opacity-10 p-3 rounded me-3">
+                            <i class="bi bi-flag text-warning fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">Active Reports</h6>
+                            <h3 class="mb-0">{{ reports.count }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column - Profile Card -->
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        {% if request.user.profile_picture %}
+                        <img src="{{ request.user.profile_picture.url }}" class="rounded-circle mb-3" width="150" height="150" alt="Profile">
+                        {% else %}
+                        <img src="{% static 'images/user-profile.jpg' %}" class="rounded-circle mb-3" width="150" height="150" alt="Profile">
+                        {% endif %}
+                        <h4>{{ request.user.get_full_name|default:request.user.username }}</h4>
+                        <p class="text-muted mb-3">@{{ request.user.username }}</p>
+                        
+                        {% if request.user.bio %}
+                        <p class="mb-4">{{ request.user.bio }}</p>
+                        {% endif %}
+                        
+                        <div class="d-flex justify-content-center gap-2">
+                            {% if request.user.website %}
+                            <a href="{{ request.user.website }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-globe me-1"></i> Website
+                            </a>
+                            {% endif %}
+                            <a href="{% url 'edit_profile' %}" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-pencil me-1"></i> Edit Profile
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="mb-3">
+                        <h6 class="mb-3">Artist Stats</h6>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Artworks</span>
+                            <span>{{ artworks_count }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Followers</span>
+                            <span>0</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Following</span>
+                            <span>0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Main Content -->
+        <div class="col-lg-8">
+            <!-- Artworks Section -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Your Artworks</h5>
+                        <a href="{% url 'upload_art' %}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-plus-lg me-1"></i>Add New
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if artworks %}
+                    <div class="row row-cols-1 row-cols-md-2 g-4">
+                        {% for artwork in artworks %}
+                        <div class="col">
+                            <div class="card h-100 border-0 shadow-sm artwork-card">
+                                <img src="{{ artwork.image.url }}" class="card-img-top" alt="{{ artwork.title }}" style="height: 180px; object-fit: cover;">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ artwork.title|truncatechars:20 }}</h5>
+                                    <p class="card-text text-muted small mb-2">
+                                        <i class="bi bi-calendar me-1"></i> {{ artwork.created_at|date:"M d, Y" }}
+                                    </p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <a href="{% url 'artwork_detail' artwork.id %}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        <div>
+                                            <a href="{% url 'edit_art' artwork.id %}" class="btn btn-sm btn-outline-primary me-1">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <form method="POST" action="{% url 'delete_art' artwork.id %}" class="d-inline">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this artwork?')">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="bi bi-images fs-1 text-muted mb-3"></i>
+                        <h5 class="mb-2">No artworks yet</h5>
+                        <p class="text-muted mb-4">Showcase your creativity by uploading your first artwork</p>
+                        <a href="{% url 'upload_art' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-lg me-1"></i> Upload Art
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Reports Section -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0">Reports About Your Artworks</h5>
+                </div>
+                <div class="card-body">
+                    {% if reports %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Artwork</th>
+                                    <th>Reason</th>
+                                    <th>Reported By</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for report in reports %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="{{ report.artwork.image.url }}" class="rounded me-2" width="40" height="40" style="object-fit: cover;">
+                                            <span>{{ report.artwork.title|truncatechars:15 }}</span>
+                                        </div>
+                                    </td>
+                                    <td>{{ report.get_report_type_display }}</td>
+                                    <td>{{ report.reporter.username }}</td>
+                                    <td>
+                                        {% if report.is_resolved %}
+                                        <span class="badge bg-success">Resolved</span>
+                                        {% else %}
+                                        <span class="badge bg-warning">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ report.created_at|date:"M d, Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-check-circle fs-1 text-success mb-3"></i>
+                        <h5 class="mb-2">No reports found</h5>
+                        <p class="text-muted">Your artworks are clean and violation-free</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Shares Section -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0 py-3">
+                    <h5 class="mb-0">Shares of Your Artworks</h5>
+                </div>
+                <div class="card-body">
+                    {% if shares %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Artwork</th>
+                                    <th>Shared By</th>
+                                    <th>Platform</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for share in shares %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="{{ share.artwork.image.url }}" class="rounded me-2" width="40" height="40" style="object-fit: cover;">
+                                            <span>{{ share.artwork.title|truncatechars:20 }}</span>
+                                        </div>
+                                    </td>
+                                    <td>{{ share.shared_by.first_name|default:share.shared_by.username }}</td>
+                                    <td>
+                                        {% if share.shared_to == 'facebook' %}
+                                        <span class="badge bg-primary bg-opacity-10 text-primary">
+                                            <i class="bi bi-facebook me-1"></i> Facebook
+                                        </span>
+                                        {% elif share.shared_to == 'twitter' %}
+                                        <span class="badge bg-info bg-opacity-10 text-info">
+                                            <i class="bi bi-twitter me-1"></i> Twitter
+                                        </span>
+                                        {% elif share.shared_to == 'instagram' %}
+                                        <span class="badge bg-danger bg-opacity-10 text-danger">
+                                            <i class="bi bi-instagram me-1"></i> Instagram
+                                        </span>
+                                        {% elif share.shared_to == 'whatsapp' %}
+                                        <span class="badge bg-success bg-opacity-10 text-success">
+                                            <i class="bi bi-whatsapp me-1"></i> WhatsApp
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary">
+                                            <i class="bi bi-link-45deg me-1"></i> Link
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ share.shared_at|date:"M d, Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="bi bi-share fs-1 text-muted mb-3"></i>
+                        <h5 class="mb-2">No shares yet</h5>
+                        <p class="text-muted">Your artworks haven't been shared yet</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

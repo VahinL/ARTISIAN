@@ -1,0 +1,174 @@
+{% extends 'viewer/base.html' %}
+
+{% block title %}Contact Artisian | Get In Touch{% endblock %}
+
+{% block extra_css %}
+{% load static %}
+<style>
+    .contact-hero {
+        background: linear-gradient(rgba(0, 0, 0, 0.7), url('{% static "images/backgrounds/header-bg.jpg" %}'));
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 5rem 0;
+        border-radius: 0 0 20px 20px;
+    }
+    .contact-card {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s;
+    }
+    .contact-card:hover {
+        transform: translateY(-5px);
+    }
+    .contact-icon {
+        font-size: 2rem;
+        color: #20c997;
+        margin-bottom: 1rem;
+    }
+    .form-control {
+        border-radius: 10px;
+        padding: 12px 15px;
+    }
+    .btn-submit {
+        background: linear-gradient(135deg, #20c997 0%, #6f42c1 100%);
+        border: none;
+        padding: 12px 30px;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+    .map-container {
+        border-radius: 15px;
+        overflow: hidden;
+        height: 100%;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="contact-hero text-center mb-5">
+    <div class="container">
+        <h1 class="display-4 fw-bold mb-3">We'd Love to Hear From You</h1>
+        <p class="lead">Have questions, suggestions, or just want to say hello? Reach out to our team.</p>
+    </div>
+</section>
+
+<!-- Contact Options -->
+<div class="container mb-5">
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="contact-card card h-100 p-4 text-center">
+                <i class="bi bi-envelope contact-icon"></i>
+                <h3>Email Us</h3>
+                <p>For general inquiries and support</p>
+                <a href="mailto:hello@artisian.com" class="btn btn-outline-primary mt-2">hello@artisian.com</a>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="contact-card card h-100 p-4 text-center">
+                <i class="bi bi-chat-dots contact-icon"></i>
+                <h3>Live Chat</h3>
+                <p>Get instant help from our team</p>
+                <button class="btn btn-outline-primary mt-2">Start Chat</button>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="contact-card card h-100 p-4 text-center">
+                <i class="bi bi-telephone contact-icon"></i>
+                <h3>Call Us</h3>
+                <p>Mon-Fri, 9am-5pm EST</p>
+                <a href="tel:+18005551234" class="btn btn-outline-primary mt-2">+1 (800) 555-1234</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contact Form and Map -->
+<div class="container mb-5">
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="contact-card card p-4 h-100">
+                <h2 class="mb-4">Send Us a Message</h2>
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">Your Name</label>
+                        <input type="text" class="form-control" placeholder="Enter your name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" class="form-control" placeholder="Enter your email">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Subject</label>
+                        <select class="form-select">
+                            <option>General Inquiry</option>
+                            <option>Artist Support</option>
+                            <option>Technical Issue</option>
+                            <option>Partnership</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Message</label>
+                        <textarea class="form-control" rows="5" placeholder="Your message here..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-submit text-white">Send Message</button>
+                </form>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="contact-card card h-100">
+                <div class="map-container">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d302.2543239770022!2d75.77941816078985!3d11.260567722497235!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ba65936dfae48af%3A0xcc0a8b6f7e744d45!2sQuest%20Innovative%20Solutions%20Pvt%20Ltd%20qisacademy%20calicut!5e0!3m2!1sen!2sin!4v1746513736258!5m2!1sen!2sin" 
+                    width="800" height="600" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FAQ Section -->
+<div class="container mb-5">
+    <h2 class="text-center mb-4">Frequently Asked Questions</h2>
+    <div class="accordion" id="faqAccordion">
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                    How do I create an artist account?
+                </button>
+            </h2>
+            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    Simply click on "Sign Up" and select "Artist" as your account type. After submitting your information, our team will review your application (usually within 24 hours) before approving your artist profile.
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                    Is there a fee to join Artisian?
+                </button>
+            </h2>
+            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    No! Artisian is completely free for both artists and art lovers. We believe in making art accessible to everyone.
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                    How can I sell my artwork through Artisian?
+                </button>
+            </h2>
+            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                    We're working on adding e-commerce features! Currently, you can showcase your work and include contact information for sales inquiries. Our marketplace launch is coming soon.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
