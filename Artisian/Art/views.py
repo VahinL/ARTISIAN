@@ -194,7 +194,6 @@ def edit_profile(request):
 
 # Viewer -->
 
-@login_required(login_url='login')
 def home(request):
     artworks = Artwork.objects.annotate(
         num_likes=Count('likes'),
