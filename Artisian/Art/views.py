@@ -8,6 +8,7 @@ from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.contrib import messages
 from django.db.models import Count
+import random
 
 
 ## ADMIN MODULE --->
@@ -35,7 +36,7 @@ def admin_dashboard(request):
 @login_required(login_url='login')
 def all_users(request):
     users = User.objects.all().order_by('-date_joined')
-    paginator = Paginator(users, 25)  
+    paginator = Paginator(users, 2)  
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -62,7 +63,7 @@ def approve_user(request, user_id):
     user.is_active = True
     user.save()
     messages.success(request, f'User {user.username} has been approved!')
-    return redirect(request.META.get('HTTP_REFERER', 'admin_user_management'))
+    return redirect('admin_user_management')
 
 @login_required(login_url='login')
 def reject_user(request, user_id):
@@ -177,6 +178,7 @@ def delete_art(request, art_id):
 def edit_profile(request):
     if request.method == 'POST':
         user = request.user
+        print('user------------------------------------------>',user)
         user.first_name = request.POST.get('first_name', user.first_name)
         user.last_name = request.POST.get('last_name', user.last_name)
         user.bio = request.POST.get('bio', user.bio)
@@ -199,8 +201,11 @@ def home(request):
         num_likes=Count('likes'),
         num_comments=Count('comments'),
         num_shares=Count('shares')  
-    ).order_by('-upload_date')
-    
+    ).all()
+
+    artworks = list(artworks)
+    random.shuffle(artworks)
+
     suggested_artists = User.objects.filter(
         user_type='artist',
         is_active=True,
@@ -208,6 +213,9 @@ def home(request):
         follower_count=Count('followers')
     ).order_by('-follower_count')[:5]
     
+    
+
+
     following_ids = []
     if request.user.is_authenticated:
         following_ids = request.user.following.values_list('artist', flat=True)
